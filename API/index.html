@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quản lý Sinh Viên</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: sans-serif;
+    background: #fff;
+    color: #111;
+  }
+
+  nav {
+    display: flex;
+    border-bottom: 2px solid #ddd;
+    padding: 0 2rem;
+    background: #f4f4f4;
+  }
+
+  nav button {
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 0.9rem 1.2rem;
+    font-size: 0.95rem;
+    cursor: pointer;
+    color: #555;
+    margin-bottom: -2px;
+  }
+
+  nav button.active {
+    border-bottom-color: #2a6dd4;
+    color: #2a6dd4;
+    font-weight: 600;
+  }
+
+  nav button:hover:not(.active) { color: #111; }
+
+  .page { display: none; padding: 2rem; }
+  .page.active { display: block; }
+
+  h1 { font-size: 1.5rem; margin-bottom: 1.5rem; }
+  h2 { font-size: 1.1rem; margin-bottom: 1rem; }
+
+  /* Records */
+  .form-section {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 1.2rem;
+    margin-bottom: 2rem;
+    max-width: 500px;
+  }
+
+  .form-section input {
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 0.6rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+
+  .form-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  button {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #fff;
+  }
+
+  .btn-add    { background: #2a7d4f; }
+  .btn-update { background: #2a6dd4; }
+  .btn-clear  { background: #888; }
+  .btn-edit   { background: #2a6dd4; font-size: 0.78rem; padding: 0.3rem 0.6rem; }
+  .btn-delete { background: #d4382a; font-size: 0.78rem; padding: 0.3rem 0.6rem; }
+  button:hover { opacity: 0.85; }
+
+  #status { margin-bottom: 1rem; font-size: 0.85rem; color: #555; min-height: 1.2rem; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 0.6rem 1rem; border-bottom: 1px solid #ddd; }
+  th { background: #f4f4f4; font-weight: 600; }
+  tr:hover { background: #fafafa; }
+
+  /* Docs */
+  .docs { max-width: 720px; }
+
+  .docs p {
+    font-size: 0.92rem;
+    color: #444;
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+  }
+
+  .base-url {
+    background: #f4f4f4;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 0.6rem 1rem;
+    font-family: monospace;
+    font-size: 0.88rem;
+    margin-bottom: 2rem;
+    word-break: break-all;
+  }
+
+  .endpoint {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 1.2rem;
+    overflow: hidden;
+  }
+
+  .endpoint-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.7rem 1rem;
+    background: #fafafa;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .method {
+    font-family: monospace;
+    font-weight: 700;
+    font-size: 0.78rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 3px;
+    color: #fff;
+    white-space: nowrap;
+  }
+
+  .method.get    { background: #2a7d4f; }
+  .method.post   { background: #2a6dd4; }
+  .method.put    { background: #d4a017; }
+  .method.delete { background: #d4382a; }
+
+  .endpoint-path { font-family: monospace; font-size: 0.88rem; color: #111; }
+  .endpoint-body { padding: 0.8rem 1rem; font-size: 0.88rem; color: #444; line-height: 1.7; }
+
+  .endpoint-body code {
+    background: #f4f4f4;
+    border: 1px solid #e0e0e0;
+    border-radius: 3px;
+    padding: 0.05rem 0.35rem;
+    font-family: monospace;
+    font-size: 0.85rem;
+  }
+
+  .endpoint-body pre {
+    background: #f4f4f4;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 0.8rem 1rem;
+    margin-top: 0.6rem;
+    font-family: monospace;
+    font-size: 0.82rem;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+
+  .fields-table { width: 100%; border-collapse: collapse; margin-top: 0.6rem; font-size: 0.85rem; }
+  .fields-table th, .fields-table td { padding: 0.4rem 0.7rem; border-bottom: 1px solid #eee; text-align: left; }
+  .fields-table th { background: #f4f4f4; font-weight: 600; }
+
+  .section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 2rem 0 0.8rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid #eee;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <button class="active" onclick="showPage('records', this)">📋 Danh sách</button>
+  <button onclick="showPage('docs', this)">📖 Mô tả API</button>
+</nav>
+
+<!-- Records -->
+<div id="page-records" class="page active">
+  <h1>Danh Sách Sinh Viên</h1>
+
+  <div class="form-section">
+    <h2 id="form-title">Thêm sinh viên mới</h2>
+    <input type="hidden" id="edit-id" />
+    <input type="text" id="field-name"       placeholder="Họ và tên" />
+    <input type="text" id="field-class_name" placeholder="Lớp" />
+    <input type="text" id="field-email"      placeholder="Email" />
+    <input type="text" id="field-mark"       placeholder="Điểm" />
+    <div class="form-buttons">
+      <button class="btn-add"    onclick="addStudent()">Thêm (POST)</button>
+      <button class="btn-update" onclick="updateStudent()">Cập nhật (PUT)</button>
+      <button class="btn-clear"  onclick="clearForm()">Xóa form</button>
+    </div>
+  </div>
+
+  <div id="status"></div>
+
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Họ tên</th><th>Lớp</th><th>Email</th><th>Điểm</th><th>Thao tác</th></tr>
+    </thead>
+    <tbody id="tbody">
+      <tr><td colspan="6">Đang tải...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Docs -->
+<div id="page-docs" class="page">
+  <div class="docs">
+    <h1>Mô Tả API</h1>
+
+    <p>
+      Đây là API quản lý danh sách sinh viên, được host trên MockAPI. API hỗ trợ
+      đầy đủ các thao tác CRUD — thêm, đọc, cập nhật và xóa — thông qua giao thức
+      HTTP sử dụng định dạng JSON. Không cần xác thực (authentication).
+    </p>
+
+    <div class="base-url">URL gốc: https://69f85af8dd0c226688ee7a09.mockapi.io/Student</div>
+
+    <div class="section-title">Mô hình dữ liệu</div>
+    <p>Mỗi sinh viên có các trường thông tin sau:</p>
+    <table class="fields-table">
+      <thead><tr><th>Trường</th><th>Kiểu dữ liệu</th><th>Mô tả</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td>         <td>string</td> <td>Mã định danh duy nhất, tự động tạo</td></tr>
+        <tr><td><code>name</code></td>        <td>string</td> <td>Họ và tên sinh viên</td></tr>
+        <tr><td><code>class_name</code></td>  <td>string</td> <td>Tên lớp học của sinh viên</td></tr>
+        <tr><td><code>email</code></td>       <td>string</td> <td>Địa chỉ email của sinh viên</td></tr>
+        <tr><td><code>mark</code></td>        <td>string</td> <td>Điểm số của sinh viên</td></tr>
+      </tbody>
+    </table>
+
+    <div class="section-title">Các endpoint</div>
+
+    <!-- GET all -->
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/Student</span>
+      </div>
+      <div class="endpoint-body">
+        Lấy danh sách tất cả sinh viên. Trả về một mảng (array) các đối tượng sinh viên.
+        <pre>[
+  {
+    "id": "1",
+    "name": "Nguyễn Văn A",
+    "class_name": "Toán",
+    "email": "vana@example.com",
+    "mark": "88"
+  },
+  ...
+]</pre>
+      </div>
+    </div>
+
+    <!-- GET one -->
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/Student/:id</span>
+      </div>
+      <div class="endpoint-body">
+        Lấy thông tin một sinh viên theo <code>id</code>. Trả về một đối tượng sinh viên duy nhất.
+        <pre>{
+  "id": "1",
+  "name": "Nguyễn Văn A",
+  "class_name": "Toán",
+  "email": "vana@example.com",
+  "mark": "88"
+}</pre>
+      </div>
+    </div>
+
+    <!-- POST -->
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/Student</span>
+      </div>
+      <div class="endpoint-body">
+        Tạo mới một sinh viên. Gửi lên một JSON body chứa thông tin sinh viên.
+        Trường <code>id</code> sẽ được tự động gán, không cần truyền vào.
+        <pre>// Request body
+{
+  "name": "Trần Thị B",
+  "class_name": "Vật Lý",
+  "email": "thib@example.com",
+  "mark": "75"
+}</pre>
+      </div>
+    </div>
+
+    <!-- PUT -->
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method put">PUT</span>
+        <span class="endpoint-path">/Student/:id</span>
+      </div>
+      <div class="endpoint-body">
+        Cập nhật thông tin sinh viên theo <code>id</code>. Chỉ cần gửi các trường muốn thay đổi,
+        không cần gửi toàn bộ dữ liệu.
+        <pre>// Request body (chỉ cập nhật điểm)
+{
+  "mark": "92"
+}</pre>
+      </div>
+    </div>
+
+    <!-- DELETE -->
+    <div class="endpoint">
+      <div class="endpoint-header">
+        <span class="method delete">DELETE</span>
+        <span class="endpoint-path">/Student/:id</span>
+      </div>
+      <div class="endpoint-body">
+        Xóa vĩnh viễn sinh viên theo <code>id</code>. Khi thành công, API trả về
+        đối tượng sinh viên vừa bị xóa.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const API = 'https://69f85af8dd0c226688ee7a09.mockapi.io/Student';
+
+  function showPage(name, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function setStatus(msg) {
+    document.getElementById('status').textContent = msg;
+  }
+
+  function loadStudents() {
+    fetch(API)
+      .then(res => res.json())
+      .then(students => {
+        document.getElementById('tbody').innerHTML = students.map(s => `
+          <tr>
+            <td>${s.id}</td>
+            <td>${s.name}</td>
+            <td>${s.class_name}</td>
+            <td>${s.email}</td>
+            <td>${s.mark}</td>
+            <td>
+              <button class="btn-edit"   onclick="fillForm(${s.id},'${esc(s.name)}','${esc(s.class_name)}','${esc(s.email)}','${esc(s.mark)}')">Sửa</button>
+              <button class="btn-delete" onclick="deleteStudent(${s.id})">Xóa</button>
+            </td>
+          </tr>
+        `).join('');
+      })
+      .catch(() => {
+        document.getElementById('tbody').innerHTML = '<tr><td colspan="6">Không thể tải dữ liệu.</td></tr>';
+      });
+  }
+
+  function addStudent() {
+    const body = getFormData();
+    if (!body.name) return setStatus('Vui lòng nhập ít nhất họ tên.');
+    fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+      .then(res => res.json())
+      .then(() => { setStatus('Đã thêm sinh viên.'); clearForm(); loadStudents(); })
+      .catch(() => setStatus('Thêm sinh viên thất bại.'));
+  }
+
+  function updateStudent() {
+    const id = document.getElementById('edit-id').value;
+    if (!id) return setStatus('Vui lòng chọn một sinh viên để chỉnh sửa.');
+    fetch(`${API}/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(getFormData())
+    })
+      .then(res => res.json())
+      .then(() => { setStatus(`Đã cập nhật sinh viên #${id}.`); clearForm(); loadStudents(); })
+      .catch(() => setStatus('Cập nhật thất bại.'));
+  }
+
+  function deleteStudent(id) {
+    if (!confirm(`Xóa sinh viên #${id}?`)) return;
+    fetch(`${API}/${id}`, { method: 'DELETE' })
+      .then(() => { setStatus(`Đã xóa sinh viên #${id}.`); loadStudents(); })
+      .catch(() => setStatus('Xóa thất bại.'));
+  }
+
+  function fillForm(id, name, class_name, email, mark) {
+    document.getElementById('edit-id').value          = id;
+    document.getElementById('field-name').value       = name;
+    document.getElementById('field-class_name').value = class_name;
+    document.getElementById('field-email').value      = email;
+    document.getElementById('field-mark').value       = mark;
+    document.getElementById('form-title').textContent = `Đang chỉnh sửa sinh viên #${id}`;
+    setStatus('');
+  }
+
+  function clearForm() {
+    ['edit-id','field-name','field-class_name','field-email','field-mark']
+      .forEach(id => document.getElementById(id).value = '');
+    document.getElementById('form-title').textContent = 'Thêm sinh viên mới';
+    setStatus('');
+  }
+
+  function getFormData() {
+    return {
+      name:       document.getElementById('field-name').value,
+      class_name: document.getElementById('field-class_name').value,
+      email:      document.getElementById('field-email').value,
+      mark:       document.getElementById('field-mark').value,
+    };
+  }
+
+  function esc(s) {
+    return String(s ?? '').replace(/'/g, "\\'");
+  }
+
+  loadStudents();
+</script>
+
+</body>
+</html>
